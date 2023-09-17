@@ -87,19 +87,7 @@ func New(root string, opts *Options) (ScanNotifier, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidRootDirPath, err)
 	}
 
-	if opts.queueSize <= 0 {
-		opts.queueSize = defaultQueueSize
-	}
-
-	if opts.maxworkers.Load() == 0 {
-		// maxworkers was not set.
-		opts.maxworkers.Store(defaultMaxWorkers)
-	}
-
-	if opts.scanInterval.Load() == nil {
-		// scanInterval was not set.
-		opts.scanInterval.Store(defaultScanInterval)
-	}
+	opts = opts.setup()
 
 	sn := &snotifier{
 		root:  root,
@@ -111,7 +99,6 @@ func New(root string, opts *Options) (ScanNotifier, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInitialization, err)
 	}
 
-	opts.event.ignoreNoChange.Store(true)
 	sn.queue = make(chan *Event, opts.queueSize)
 	sn.iqueue = make(chan *fsEntry, opts.queueSize)
 	sn.stop = make(chan struct{})

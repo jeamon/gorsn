@@ -29,6 +29,37 @@ type Options struct {
 	includePaths *regexp.Regexp
 }
 
+func defaultOpts() *Options {
+	o := &Options{}
+	o.queueSize = defaultQueueSize
+	o.maxworkers.Store(defaultMaxWorkers)
+	o.scanInterval.Store(defaultScanInterval)
+	o.excludePaths = nil
+	o.includePaths = nil
+	o.event.ignoreNoChange.Store(true)
+	return o
+}
+
+func (o *Options) setup() *Options {
+	if o == nil {
+		o = defaultOpts()
+		return o
+	}
+	if o.queueSize <= 0 {
+		o.queueSize = defaultQueueSize
+	}
+	if o.maxworkers.Load() == 0 {
+		// maxworkers was not set.
+		o.maxworkers.Store(defaultMaxWorkers)
+	}
+	if o.scanInterval.Load() == nil {
+		// scanInterval was not set.
+		o.scanInterval.Store(defaultScanInterval)
+	}
+	o.event.ignoreNoChange.Store(true)
+	return o
+}
+
 func RegexOpts(eregex, iregex *regexp.Regexp) *Options {
 	if eregex != nil && eregex.String() == "" {
 		eregex = nil
