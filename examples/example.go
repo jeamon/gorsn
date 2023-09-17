@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -31,7 +30,7 @@ func main() {
 		// others options keep their default values.
 
 	// step 3. get an instance based on above settings.
-	sn, err := gorsn.New(context.Background(), root, opts)
+	sn, err := gorsn.New(root, opts)
 	if err != nil {
 		log.Fatal(err)
 	}

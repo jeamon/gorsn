@@ -7,7 +7,6 @@
 package gorsn
 
 import (
-	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -53,7 +52,6 @@ type snotifier struct {
 	iqueue  chan *fsEntry
 	stop    chan struct{}
 	wg      *sync.WaitGroup
-	ctx     context.Context
 	running atomic.Bool
 }
 
@@ -84,7 +82,7 @@ func (sn *snotifier) IsRunning() bool {
 // parsed and loaded based on the options provided by `opts`. It returns and error
 // which wraps `ErrInvalidRootDirPath` in case the root path is not an accessible
 // directory. `ErrInitialization` means the initialization encoutered an error.
-func New(ctx context.Context, root string, opts *Options) (ScanNotifier, error) {
+func New(root string, opts *Options) (ScanNotifier, error) {
 	if fi, err := os.Stat(root); err != nil || !fi.IsDir() {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidRootDirPath, err)
 	}
@@ -118,8 +116,6 @@ func New(ctx context.Context, root string, opts *Options) (ScanNotifier, error) 
 	sn.iqueue = make(chan *fsEntry, opts.queueSize)
 	sn.stop = make(chan struct{})
 	sn.wg = &sync.WaitGroup{}
-	sn.ctx = ctx
-
 	return sn, nil
 }
 
@@ -160,9 +156,6 @@ func (sn *snotifier) scanner() {
 	for {
 		select {
 		case <-sn.stop:
-			sn.finalize()
-			return
-		case <-sn.ctx.Done():
 			sn.finalize()
 			return
 		default:

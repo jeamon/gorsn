@@ -39,6 +39,9 @@ func (sn *snotifier) work(done *atomic.Bool) {
 			}
 
 			sn.event(pt, fse, fi)
+		case <-sn.stop:
+			sn.wg.Done()
+			return
 		default:
 			// default ensures usage & non-blocking of select.
 			if len(sn.iqueue) == 0 && done.Load() {
