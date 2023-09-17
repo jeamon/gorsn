@@ -47,6 +47,7 @@ func (o *Options) SetQueueSize(v int) *Options {
 
 func (o *Options) SetMaxWorkers(v int) *Options {
 	if v <= 0 {
+		o.maxworkers.Store(defaultMaxWorkers)
 		return o
 	}
 	o.maxworkers.Store(uint32(v))
@@ -54,6 +55,10 @@ func (o *Options) SetMaxWorkers(v int) *Options {
 }
 
 func (o *Options) SetScanInterval(v time.Duration) *Options {
+	if v < 0 {
+		o.scanInterval.Store(defaultScanInterval)
+		return o
+	}
 	o.scanInterval.Store(v)
 	return o
 }

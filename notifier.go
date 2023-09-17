@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	defaultQueueSize  = 10
-	defaultMaxWorkers = 1
+	defaultQueueSize    = 10
+	defaultMaxWorkers   = 1
+	defaultScanInterval = 1 * time.Second
 )
 
 // ScanNotifier is an interface which defines
@@ -92,11 +93,15 @@ func New(ctx context.Context, root string, opts *Options) (ScanNotifier, error) 
 		opts.queueSize = defaultQueueSize
 	}
 
-	if opts.maxworkers.Load() <= 0 {
+	if opts.maxworkers.Load() == 0 {
+		// maxworkers was not set.
 		opts.maxworkers.Store(defaultMaxWorkers)
 	}
 
-	opts.scanInterval.Store(1 * time.Second)
+	if opts.scanInterval.Load() == nil {
+		// scanInterval was not set.
+		opts.scanInterval.Store(defaultScanInterval)
+	}
 
 	sn := &snotifier{
 		root:  root,
