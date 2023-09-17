@@ -46,6 +46,7 @@ func (sn *snotifier) work(done *atomic.Bool) {
 			}
 		}
 	}
+	sn.wg.Done()
 }
 
 // event processes the path based on its recent state and emit or
