@@ -5,37 +5,39 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"regexp"
 	"syscall"
 
 	"github.com/jeamon/gorsn"
 )
 
 func main() {
-	// define a path to a valid folder.
-	// lets use this project folder so
-	// we can observe each change.
-	root, err := os.Getwd()
+	// step 1. define a path to a valid folder.
+	root, err := os.Getwd() // lets use this package folder
 	if err != nil {
 		log.Fatal(err)
 	}
-	// set some options.
-	// No exclude & include regex.
-	// 10 events can wait into the queue.
-	// 2 goroutines to build & emit events.
-	// 0 sec - immediate, so no delay to scan.
-	opts := gorsn.RegexOpts(nil, nil).
-		SetQueueSize(10).
-		SetMaxWorkers(2).
-		SetScanInterval(0)
 
-	// get an instance based on above settings.
+	// step 2. set some options.
+	excludeRule := regexp.MustCompile(`.*(\.git).*`)
+	// exclude `.git` folder. No include rule.
+	opts := gorsn.RegexOpts(excludeRule, nil).
+		// 5 events can wait into the queue.
+		SetQueueSize(5).
+		// 2 goroutines to build & emit events.
+		SetMaxWorkers(2).
+		// 0 sec - immediate, so no delay to scan.
+		SetScanInterval(0)
+		// others options keep their default values.
+
+	// step 3. get an instance based on above settings.
 	sn, err := gorsn.New(context.Background(), root, opts)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// [optional] stop the scan notifier on CTRL+C.
 	go func() {
-		// stop on CTRL+C
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGQUIT,
 			syscall.SIGTERM, syscall.SIGHUP, os.Interrupt)
@@ -45,16 +47,15 @@ func main() {
 		sn.Stop()
 	}()
 
-	// asynchronously receive events from the queue.
+	// step 4. asynchronously receive events from the queue.
 	go func() {
 		for event := range sn.Queue() {
 			log.Printf("received %q %s %s %v\n", event.Path, event.Type, event.Name, event.Error)
 		}
 	}()
 
-	// start the scan notifier on the defined path.
-	// then block until it fails or get stopped.
-	err = sn.Start()
+	// step 5. start the scan notifier on the defined path.
+	err = sn.Start() // blocks unless it fails or until stopped.
 	if err != nil {
 		log.Fatal(err)
 	}
