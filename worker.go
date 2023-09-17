@@ -56,7 +56,9 @@ func (sn *snotifier) event(pt pathType, fse *fsEntry, fi fs.FileInfo) {
 
 	if !exists {
 		sn.paths.Store(fse.path, &pathInfos{fi.ModTime(), fi.Mode().Type(), true})
-		sn.queueEvent(&Event{fse.path, pt, CREATE, fse.err})
+		if !sn.opts.event.ignoreCreate.Load() {
+			sn.queueEvent(&Event{fse.path, pt, CREATE, fse.err})
+		}
 		return
 	}
 	pi := val.(*pathInfos)
@@ -65,13 +67,17 @@ func (sn *snotifier) event(pt pathType, fse *fsEntry, fi fs.FileInfo) {
 	if fi.Mode().Type().Perm() != pi.mode.Perm() {
 		change = true
 		pi.mode = fi.Mode().Type()
-		sn.queueEvent(&Event{fse.path, pt, PERM, fse.err})
+		if !sn.opts.event.ignorePerm.Load() {
+			sn.queueEvent(&Event{fse.path, pt, PERM, fse.err})
+		}
 	}
 
 	if fi.ModTime() != pi.modTime {
 		change = true
 		pi.modTime = fi.ModTime()
-		sn.queueEvent(&Event{fse.path, pt, MODIFY, fse.err})
+		if !sn.opts.event.ignoreModify.Load() {
+			sn.queueEvent(&Event{fse.path, pt, MODIFY, fse.err})
+		}
 	}
 
 	if !change && !sn.opts.event.ignoreNoChange.Load() {
