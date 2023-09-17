@@ -37,11 +37,7 @@ func (sn *snotifier) work(done *atomic.Bool) {
 			if ignore, _ := sn.check(fse.path, pt, nil); ignore {
 				continue
 			}
-
 			sn.event(pt, fse, fi)
-		case <-sn.stop:
-			sn.wg.Done()
-			return
 		default:
 			// default ensures usage & non-blocking of select.
 			if len(sn.iqueue) == 0 && done.Load() {
