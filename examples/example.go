@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/jeamon/gorsn"
 )
@@ -15,12 +14,20 @@ func main() {
 	// define a path to a valid folder.
 	// lets use this project folder so
 	// we can observe each change.
-	root := "../"
+	root, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 	// set some options.
+	// No exclude & include regex.
+	// 10 events can wait into the queue.
+	// 2 goroutines to build & emit events.
+	// 0 sec - immediate, so no delay to scan.
 	opts := gorsn.RegexOpts(nil, nil).
 		SetQueueSize(10).
 		SetMaxWorkers(2).
-		SetScanInterval(1 * time.Second)
+		SetScanInterval(0)
+
 	// get an instance based on above settings.
 	sn, err := gorsn.New(context.Background(), root, opts)
 	if err != nil {
