@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -54,7 +55,8 @@ func main() {
 	}()
 
 	// step 5. start the scan notifier on the defined path.
-	err = sn.Start() // blocks unless it fails or until stopped.
+	// blocks unless it fails or until stopped.
+	err = sn.Start(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}

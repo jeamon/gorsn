@@ -7,6 +7,7 @@
 package gorsn
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -27,7 +28,7 @@ const (
 // scan notifier.
 type ScanNotifier interface {
 	Queue() <-chan *Event
-	Start() error
+	Start(context.Context) error
 	Stop() error
 	IsRunning() bool
 }
@@ -126,23 +127,26 @@ func (sn *snotifier) init(s string, d fs.DirEntry, err error) error {
 // Start is a blocking method which pre-boots the consumers
 // and starts the infinite loop scanner to monitor the root
 // directory contents.
-func (sn *snotifier) Start() error {
+func (sn *snotifier) Start(ctx context.Context) error {
 	if sn.IsRunning() {
 		return ErrScanAlreadyStarted
 	}
 	sn.running.Store(true)
 	// sn.workers()
-	sn.scanner()
+	sn.scanner(ctx)
 	return nil
 }
 
 // scanner runs an infinite scan loop after each interval of time.
 // it exits on context cancellation or on call to stop the notifiesn.
-func (sn *snotifier) scanner() {
+func (sn *snotifier) scanner(ctx context.Context) {
 	var done atomic.Bool
 	for {
 		select {
 		case <-sn.stop:
+			sn.finalize()
+			return
+		case <-ctx.Done():
 			sn.finalize()
 			return
 		default:

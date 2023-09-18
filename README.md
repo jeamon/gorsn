@@ -87,7 +87,7 @@ func main() {
 	}()
 
 	// step 5. start the scan notifier on the defined path.
-	err = sn.Start() // blocks unless it fails or until stopped.
+	err = sn.Start(context.Background()) // blocks unless it fails or until stopped.
 	if err != nil {
 		log.Fatal(err)
 	}
