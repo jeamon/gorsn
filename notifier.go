@@ -23,14 +23,29 @@ const (
 	defaultScanInterval = 1 * time.Second
 )
 
-// ScanNotifier is an interface which defines
-// a set of available actions by a resource
-// scan notifier.
+// ScanNotifier is an interface which defines a set of available actions.
 type ScanNotifier interface {
+	// Queue returns the channel to listen on for receiving changes events.
+	// The returned channel is read-only to avoid closing or writing on.
 	Queue() <-chan *Event
+
+	// Start begins periodic scanning of root directory and emitting events.
 	Start(context.Context) error
+
+	// Stop aborts the scanning of root directory and sending events.
 	Stop() error
+
+	// IsRunning reports whether the scan notifier has started.
 	IsRunning() bool
+
+	// Flush clears internal cache history of files and directories under monitoring.
+	// Once succeeded, `CREATE` is the next event for each item under monitoring.
+	// This could be used directly after initialization of the scan notifier instance
+	// in order to receive the list of item (via `CREATE` event) inside root directory.
+	// Calling this while the scan notifier has started will make the scanner to detect
+	// each item like newly created into the root directory so the notifier will emit
+	// `CREATE` event for those items almost immediately.
+	Flush()
 }
 
 type pathInfos struct {
@@ -75,6 +90,21 @@ func (sn *snotifier) Stop() error {
 // for new events or was stopped or was not started yet.
 func (sn *snotifier) IsRunning() bool {
 	return sn.running.Load()
+}
+
+// Flush remove all root directory items recent history.
+func (sn *snotifier) Flush() {
+	sn.flush()
+}
+
+func (sn *snotifier) flush() {
+	if sn == nil {
+		return
+	}
+	sn.paths.Range(func(key interface{}, value interface{}) bool {
+		sn.paths.Delete(key)
+		return true
+	})
 }
 
 // New provides an initialized object which satisfies the ScanNotifier interface.
