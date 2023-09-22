@@ -8,10 +8,8 @@ import (
 func getPathType(fm fs.FileMode) pathType {
 	switch {
 	case fm.IsDir() || fm&fs.ModeDir != 0:
-		//log.Println("folder")
 		return DIR
 	case fm.IsRegular():
-		//log.Println("file")
 		return FILE
 	case fm&fs.ModeSymlink != 0:
 		return SYMLINK

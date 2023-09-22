@@ -182,9 +182,7 @@ func (sn *snotifier) scanner(ctx context.Context) {
 		default:
 			done.Store(false)
 			sn.workers(&done)
-			if err := filepath.WalkDir(sn.root, sn.scan); err != nil {
-				fmt.Println(err)
-			}
+			filepath.WalkDir(sn.root, sn.scan)
 			done.Store(true)
 			sn.wg.Wait()
 

@@ -1,7 +1,5 @@
 package gorsn
 
-import "log"
-
 type eventName string
 
 const (
@@ -38,7 +36,6 @@ func (sn *snotifier) queueEvent(ev *Event) bool {
 	case sn.queue <- ev:
 		return true
 	case <-sn.stop:
-		log.Println("got stop in queueEvent")
 	}
 	return false
 }
