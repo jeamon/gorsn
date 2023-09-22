@@ -26,7 +26,7 @@ func (sn *snotifier) work(done *atomic.Bool) {
 			if err != nil {
 				// emit ERROR event earlier since no futuer check could be done.
 				if !sn.opts.event.ignoreErrors.Load() {
-					sn.queueEvent(&Event{fse.path, getPathType(fi.Mode().Type()), ERROR, err})
+					sn.queueEvent(Event{fse.path, getPathType(fi.Mode().Type()), ERROR, err})
 				}
 				continue
 			}
@@ -57,7 +57,7 @@ func (sn *snotifier) event(pt pathType, fse *fsEntry, fi fs.FileInfo) {
 	if !exists {
 		sn.paths.Store(fse.path, &pathInfos{fi.ModTime(), fi.Mode().Type(), true})
 		if !sn.opts.event.ignoreCreate.Load() {
-			sn.queueEvent(&Event{fse.path, pt, CREATE, fse.err})
+			sn.queueEvent(Event{fse.path, pt, CREATE, fse.err})
 		}
 		return
 	}
@@ -68,7 +68,7 @@ func (sn *snotifier) event(pt pathType, fse *fsEntry, fi fs.FileInfo) {
 		change = true
 		pi.mode = fi.Mode().Type()
 		if !sn.opts.event.ignorePerm.Load() {
-			sn.queueEvent(&Event{fse.path, pt, PERM, fse.err})
+			sn.queueEvent(Event{fse.path, pt, PERM, fse.err})
 		}
 	}
 
@@ -76,11 +76,11 @@ func (sn *snotifier) event(pt pathType, fse *fsEntry, fi fs.FileInfo) {
 		change = true
 		pi.modTime = fi.ModTime()
 		if !sn.opts.event.ignoreModify.Load() {
-			sn.queueEvent(&Event{fse.path, pt, MODIFY, fse.err})
+			sn.queueEvent(Event{fse.path, pt, MODIFY, fse.err})
 		}
 	}
 
 	if !change && !sn.opts.event.ignoreNoChange.Load() {
-		sn.queueEvent(&Event{fse.path, pt, NOCHANGE, fse.err})
+		sn.queueEvent(Event{fse.path, pt, NOCHANGE, fse.err})
 	}
 }

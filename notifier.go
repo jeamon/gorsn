@@ -27,7 +27,7 @@ const (
 type ScanNotifier interface {
 	// Queue returns the channel to listen on for receiving changes events.
 	// The returned channel is read-only to avoid closing or writing on.
-	Queue() <-chan *Event
+	Queue() <-chan Event
 
 	// Start begins periodic scanning of root directory and emitting events.
 	Start(context.Context) error
@@ -64,7 +64,7 @@ type snotifier struct {
 	root    string
 	opts    *Options
 	paths   sync.Map
-	queue   chan *Event
+	queue   chan Event
 	iqueue  chan *fsEntry
 	stop    chan struct{}
 	wg      *sync.WaitGroup
@@ -72,7 +72,7 @@ type snotifier struct {
 }
 
 // Queue returns a read only channel of events.
-func (sn *snotifier) Queue() <-chan *Event {
+func (sn *snotifier) Queue() <-chan Event {
 	return sn.queue
 }
 
@@ -130,7 +130,7 @@ func New(root string, opts *Options) (ScanNotifier, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInitialization, err)
 	}
 
-	sn.queue = make(chan *Event, opts.queueSize)
+	sn.queue = make(chan Event, opts.queueSize)
 	sn.iqueue = make(chan *fsEntry, opts.queueSize)
 	sn.stop = make(chan struct{})
 	sn.wg = &sync.WaitGroup{}
@@ -226,7 +226,7 @@ func (sn *snotifier) missingPaths() {
 		}
 
 		if !sn.opts.event.ignoreDelete.Load() {
-			ev := &Event{path, getPathType(pi.mode), DELETE, nil}
+			ev := Event{path, getPathType(pi.mode), DELETE, nil}
 			sn.queueEvent(ev)
 		}
 		sn.paths.Delete(path)

@@ -28,7 +28,7 @@ type Event struct {
 }
 
 // queueEvent emits an to the queue after constructing the event.
-func (sn *snotifier) queueEvent(ev *Event) bool {
+func (sn *snotifier) queueEvent(ev Event) bool {
 	if !sn.running.Load() {
 		return false
 	}
