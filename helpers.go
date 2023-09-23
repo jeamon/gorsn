@@ -19,10 +19,15 @@ func getPathType(fm fs.FileMode) pathType {
 }
 
 func (sn *snotifier) finalize() {
-	sn.running.Store(false)
+	sn.stopping.Store(true)
 	close(sn.stop)
 	close(sn.iqueue)
 	close(sn.queue)
+	sn.wg.Wait()
+	sn.flush()
+	sn.running.Store(false)
+	sn.stopping.Store(false)
+	sn.ready = false
 }
 
 func (sn *snotifier) check(s string, t pathType, err error) (bool, error) {

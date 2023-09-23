@@ -14,6 +14,8 @@ const (
 	ErrInitialization     ErrorCode = "error parsing root directory"
 	ErrScanIsNotRunning   ErrorCode = "scan notifier is not running"
 	ErrScanAlreadyStarted ErrorCode = "scan notifier has already started"
+	ErrScanIsStopping     ErrorCode = "scan notifier is stopping"
+	ErrScanIsNotReady     ErrorCode = "scan notifier is not (re)initialized"
 )
 
 // Error returns the real error message.

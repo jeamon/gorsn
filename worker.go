@@ -19,7 +19,7 @@ func (sn *snotifier) work(done *atomic.Bool) {
 	var fi fs.FileInfo
 	var pt pathType
 	var err error
-	for sn.running.Load() {
+	for sn.running.Load() && !sn.stopping.Load() {
 		select {
 		case fse := <-sn.iqueue:
 			fi, err = fse.d.Info()

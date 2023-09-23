@@ -61,14 +61,16 @@ type fsEntry struct {
 }
 
 type snotifier struct {
-	root    string
-	opts    *Options
-	paths   sync.Map
-	queue   chan Event
-	iqueue  chan *fsEntry
-	stop    chan struct{}
-	wg      *sync.WaitGroup
-	running atomic.Bool
+	root     string
+	opts     *Options
+	paths    sync.Map
+	queue    chan Event
+	iqueue   chan *fsEntry
+	stop     chan struct{}
+	ready    bool
+	wg       *sync.WaitGroup
+	running  atomic.Bool
+	stopping atomic.Bool
 }
 
 // Queue returns a read only channel of events.
@@ -79,6 +81,9 @@ func (sn *snotifier) Queue() <-chan Event {
 // Stop triggers the notifier routines to exit
 // and to close the events queue.
 func (sn *snotifier) Stop() error {
+	if sn.isStopping() {
+		return ErrScanIsStopping
+	}
 	if !sn.IsRunning() {
 		return ErrScanIsNotRunning
 	}
@@ -90,6 +95,11 @@ func (sn *snotifier) Stop() error {
 // for new events or was stopped or was not started yet.
 func (sn *snotifier) IsRunning() bool {
 	return sn.running.Load()
+}
+
+// isStopping tells wether the scan notifier is in the process of closing.
+func (sn *snotifier) isStopping() bool {
+	return sn.stopping.Load()
 }
 
 // Flush remove all root directory items recent history.
@@ -134,6 +144,7 @@ func New(root string, opts *Options) (ScanNotifier, error) {
 	sn.iqueue = make(chan *fsEntry, opts.queueSize)
 	sn.stop = make(chan struct{})
 	sn.wg = &sync.WaitGroup{}
+	sn.ready = true
 	return sn, nil
 }
 
@@ -160,6 +171,12 @@ func (sn *snotifier) init(s string, d fs.DirEntry, err error) error {
 func (sn *snotifier) Start(ctx context.Context) error {
 	if sn.IsRunning() {
 		return ErrScanAlreadyStarted
+	}
+	if sn.isStopping() {
+		return ErrScanIsStopping
+	}
+	if !sn.ready {
+		return ErrScanIsNotReady
 	}
 	sn.running.Store(true)
 	// sn.workers()
