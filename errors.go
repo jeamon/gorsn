@@ -2,7 +2,7 @@ package gorsn
 
 import "fmt"
 
-// ErrorCode describes a failure on the resource scan notifiesn.
+// ErrorCode describes a failure on the resource scan notifier.
 type ErrorCode string
 
 const (
