@@ -46,6 +46,11 @@ type ScanNotifier interface {
 	// each item like newly created into the root directory so the notifier will emit
 	// `CREATE` event for those items almost immediately.
 	Flush()
+
+	// Pause instructs the scanner to escape at each polling interval so no changes
+	// detection will happen then no new events will be sent.
+	// Use Resume() to restart the normal scanning and event notification processes.
+	Pause() error
 }
 
 type pathInfos struct {
@@ -71,6 +76,7 @@ type snotifier struct {
 	wg       *sync.WaitGroup
 	running  atomic.Bool
 	stopping atomic.Bool
+	paused   atomic.Bool
 }
 
 // Queue returns a read only channel of events.
@@ -185,7 +191,7 @@ func (sn *snotifier) Start(ctx context.Context) error {
 }
 
 // scanner runs an infinite scan loop after each interval of time.
-// it exits on context cancellation or on call to stop the notifiesn.
+// it exits on context cancellation or on call to stop the notifier.
 func (sn *snotifier) scanner(ctx context.Context) {
 	var done atomic.Bool
 	for {
@@ -197,6 +203,10 @@ func (sn *snotifier) scanner(ctx context.Context) {
 			sn.finalize()
 			return
 		default:
+			if sn.paused.Load() {
+				time.Sleep(sn.opts.scanInterval.Load().(time.Duration))
+				continue
+			}
 			done.Store(false)
 			sn.workers(&done)
 			filepath.WalkDir(sn.root, sn.scan)
@@ -249,4 +259,17 @@ func (sn *snotifier) missingPaths() {
 		sn.paths.Delete(path)
 		return true
 	})
+}
+
+// Pause triggers the scanner routine to escape at each intervall
+// so that no new changes will be detected and no events to be sent.
+func (sn *snotifier) Pause() error {
+	if sn.isStopping() {
+		return ErrScanIsStopping
+	}
+	if !sn.IsRunning() {
+		return ErrScanIsNotRunning
+	}
+	sn.paused.Store(true)
+	return nil
 }
