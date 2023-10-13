@@ -16,6 +16,7 @@ const (
 	ErrScanAlreadyStarted ErrorCode = "scan notifier has already started"
 	ErrScanIsStopping     ErrorCode = "scan notifier is stopping"
 	ErrScanIsNotReady     ErrorCode = "scan notifier is not (re)initialized"
+	ErrScanIsNotPaused    ErrorCode = "scan notifier is not paused"
 )
 
 // Error returns the real error message.

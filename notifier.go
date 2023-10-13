@@ -51,6 +51,9 @@ type ScanNotifier interface {
 	// detection will happen then no new events will be sent.
 	// Use Resume() to restart the normal scanning and event notification processes.
 	Pause() error
+
+	// Resume restarts the scanner and notifier after being into `paused` state.
+	Resume() error
 }
 
 type pathInfos struct {
@@ -271,5 +274,22 @@ func (sn *snotifier) Pause() error {
 		return ErrScanIsNotRunning
 	}
 	sn.paused.Store(true)
+	return nil
+}
+
+// Resume triggers the scanner routine to restart checking files
+// and sending events on changes detection. It is expected to be
+// called after the scannotifier is into `paused` state.
+func (sn *snotifier) Resume() error {
+	if sn.isStopping() {
+		return ErrScanIsStopping
+	}
+	if !sn.IsRunning() {
+		return ErrScanIsNotRunning
+	}
+	if !sn.paused.Load() {
+		return ErrScanIsNotPaused
+	}
+	sn.paused.Store(false)
 	return nil
 }
