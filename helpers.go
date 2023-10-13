@@ -27,6 +27,7 @@ func (sn *snotifier) finalize() {
 	sn.flush()
 	sn.running.Store(false)
 	sn.stopping.Store(false)
+	sn.paused.Store(false)
 	sn.ready = false
 }
 
