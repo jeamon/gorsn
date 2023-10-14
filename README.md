@@ -2,6 +2,20 @@
 
 `gorsn` means **Go Resource Scan Notifier**. This is a simple & high-concurrent & options-rich cross-platform go-based library to periodically scan a folder and all its sub-content to get notified at any changes. Options are thread-safe and can be modified even during the program execution. The options allow for example to scale the number of workers/goroutines and to specify which kind of events we are interested in.
 
+## Features
+
+A successful scan-notifier provided by `gorsn.New` method is an interface with below actions.
+
+| Action | Description |
+|:------ | :-------------------------------------- |
+| Queue() <-chan Event | provides a read-only channel to listen events from |
+| Start(context.Context) error | starts the scanner and events notifications routines |
+| Stop() error | stops the scanner and events notifications routines |
+| Pause() error | triggers to scanner to pause to avoid emitting events |
+| Resume() error | restarts the scanner and notifier after being paused |
+| IsRunning() bool | informs wether the scanner notifier is stopped or not |
+| Flush() | clears latest changes infos of files under monitoring |
+
 ## Installation
 
 Just import the `gorsn` library as external package to start using it into your project. There are some examples into the examples folder to learn more. 
