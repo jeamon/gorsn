@@ -31,9 +31,9 @@ type Options struct {
 
 func defaultOpts() *Options {
 	o := &Options{}
-	o.queueSize = defaultQueueSize
-	o.maxworkers.Store(defaultMaxWorkers)
-	o.scanInterval.Store(defaultScanInterval)
+	o.queueSize = DEFAULT_QUEUE_SIZE
+	o.maxworkers.Store(DEFAULT_MAX_WORKERS)
+	o.scanInterval.Store(DEFAULT_SCAN_INTERVAL)
 	o.excludePaths = nil
 	o.includePaths = nil
 	o.event.ignoreNoChange.Store(true)
@@ -46,15 +46,15 @@ func (o *Options) setup() *Options {
 		return o
 	}
 	if o.queueSize <= 0 {
-		o.queueSize = defaultQueueSize
+		o.queueSize = DEFAULT_QUEUE_SIZE
 	}
 	if o.maxworkers.Load() == 0 {
 		// maxworkers was not set.
-		o.maxworkers.Store(defaultMaxWorkers)
+		o.maxworkers.Store(DEFAULT_MAX_WORKERS)
 	}
 	if o.scanInterval.Load() == nil {
 		// scanInterval was not set.
-		o.scanInterval.Store(defaultScanInterval)
+		o.scanInterval.Store(DEFAULT_SCAN_INTERVAL)
 	}
 	o.event.ignoreNoChange.Store(true)
 	return o
@@ -78,7 +78,7 @@ func (o *Options) SetQueueSize(v int) *Options {
 
 func (o *Options) SetMaxWorkers(v int) *Options {
 	if v <= 0 {
-		o.maxworkers.Store(defaultMaxWorkers)
+		o.maxworkers.Store(DEFAULT_MAX_WORKERS)
 		return o
 	}
 	o.maxworkers.Store(uint32(v))
@@ -87,7 +87,7 @@ func (o *Options) SetMaxWorkers(v int) *Options {
 
 func (o *Options) SetScanInterval(v time.Duration) *Options {
 	if v < 0 {
-		o.scanInterval.Store(defaultScanInterval)
+		o.scanInterval.Store(DEFAULT_SCAN_INTERVAL)
 		return o
 	}
 	o.scanInterval.Store(v)

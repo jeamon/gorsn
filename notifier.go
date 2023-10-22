@@ -18,9 +18,9 @@ import (
 )
 
 const (
-	defaultQueueSize    = 10
-	defaultMaxWorkers   = 1
-	defaultScanInterval = 1 * time.Second
+	DEFAULT_QUEUE_SIZE    = 10
+	DEFAULT_MAX_WORKERS   = 1
+	DEFAULT_SCAN_INTERVAL = 1 * time.Second
 )
 
 // ScanNotifier is an interface which defines a set of available actions.
