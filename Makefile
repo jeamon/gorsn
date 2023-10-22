@@ -10,12 +10,11 @@ help:
 
 .PHONY: linter
 linter: ## Install golangci-lint executable via curl.
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v${GOLANGCI_LINT_VERSION}
+	## manual download from https://github.com/golangci/golangci-lint/releases/
+	which golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v${GOLANGCI_LINT_VERSION}
 
 .PHONY: lint
-lint: ## Updates modules and execute linters.
-	## use `make install-linter` to install linters if missing
-	## or download the executable file from https://github.com/golangci/golangci-lint/releases/
+lint: linter ## Updates modules and execute linters.	
 	go mod tidy
 	golangci-lint -v --timeout=5m run
 
